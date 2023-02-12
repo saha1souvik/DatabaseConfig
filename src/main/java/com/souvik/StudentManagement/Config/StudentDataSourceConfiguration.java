@@ -4,10 +4,12 @@ package com.souvik.StudentManagement.Config;
 import com.souvik.StudentManagement.Model.StudentEntity;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -20,7 +22,9 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "com.souvik.StudentManagement.Repository", entityManagerFactoryRef = "studentEntityManagerFactory")
+@ComponentScan("com.souvik.StudentManagement")
+@EnableJpaRepositories(basePackages = "com.souvik.StudentManagement.Repository", entityManagerFactoryRef = "studentEntityManagerFactory",
+transactionManagerRef = "studentTransactionManager")
 public class StudentDataSourceConfiguration {
 
     @Bean
@@ -30,7 +34,7 @@ public class StudentDataSourceConfiguration {
         return new DataSourceProperties();
     }
 
-    @Bean
+    @Bean(name = "studentDataSource")
     @ConfigurationProperties("spring.datasource.student.configuration")
     public DataSource studentDataSource(){
         return studentDataSourceProperty()
@@ -40,8 +44,11 @@ public class StudentDataSourceConfiguration {
     }
 
     @Bean(name = "studentEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean studentEntityManagerFactory(EntityManagerFactoryBuilder builder){
-        return builder.dataSource(studentDataSource())
+    @Primary
+    @ConditionalOnBean(name = "studentDataSource")
+    public LocalContainerEntityManagerFactoryBean studentEntityManagerFactory(EntityManagerFactoryBuilder builder
+    ,@Qualifier("studentDataSource") DataSource dataSource){
+        return builder.dataSource(dataSource)
                 .packages(StudentEntity.class)
                 .build();
 
