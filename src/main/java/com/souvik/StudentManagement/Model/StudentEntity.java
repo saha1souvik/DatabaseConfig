@@ -11,7 +11,7 @@ public class StudentEntity {
 
     @Id
     @Column(name = "student_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private String studentId;
     @Column(name = "firstname")
     private String firstName;
